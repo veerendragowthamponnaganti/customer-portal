@@ -1,42 +1,68 @@
+```groovy
 pipeline {
     agent any
+
+    environment {
+        IMAGE_NAME = "customer-portal"
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
+        CONTAINER_NAME = "customer-portal-${BUILD_NUMBER}"
+    }
 
     stages {
 
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
+                checkout scm
             }
         }
 
         stage('Build') {
             steps {
                 echo 'Building Customer Portal...'
+                bat 'python -m py_compile app\\app.py'
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Running automated tests...'
+                bat 'python -m pytest -v'
             }
         }
 
         stage('Docker Build') {
             steps {
                 echo 'Building Docker image...'
+                bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
             }
         }
 
         stage('Container Verification') {
             steps {
-                echo 'Verifying Docker container...'
+                echo 'Starting temporary container...'
+
+                bat 'docker run -d --name %CONTAINER_NAME% -p 8090:8080 %IMAGE_NAME%:%IMAGE_TAG%'
+
+                echo 'Waiting for application to start...'
+
+                bat 'timeout /t 5 /nobreak'
+
+                echo 'Checking application health endpoint...'
+
+                bat 'curl --fail http://localhost:8090/health'
             }
         }
 
         stage('Cleanup') {
             steps {
-                echo 'Cleaning up temporary container...'
+                echo 'Stopping and removing temporary container...'
+
+                bat 'docker stop %CONTAINER_NAME%'
+
+                bat 'docker rm %CONTAINER_NAME%'
             }
         }
     }
 }
+```
