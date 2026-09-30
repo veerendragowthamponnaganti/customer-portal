@@ -1,6 +1,7 @@
 pipeline {
 agent any
 
+
 environment {
     IMAGE_NAME = 'customer-portal'
     IMAGE_TAG = "build-${BUILD_NUMBER}"
@@ -40,11 +41,10 @@ stages {
     stage('Container Verification') {
         steps {
             echo 'Starting temporary container...'
-
             bat '"C:\\Users\\vasav\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name %CONTAINER_NAME% -p 8090:8080 %IMAGE_NAME%:%IMAGE_TAG%'
 
             echo 'Waiting for application to start...'
-            bat 'timeout /t 5 /nobreak'
+            bat 'powershell.exe -NoProfile -Command "Start-Sleep -Seconds 5"'
 
             echo 'Checking health endpoint...'
             bat 'curl --fail http://localhost:8090/health'
@@ -59,5 +59,6 @@ post {
         bat '"C:\\Users\\vasav\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm %CONTAINER_NAME% 2>nul || exit /b 0'
     }
 }
+
 
 }
