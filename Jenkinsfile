@@ -1,9 +1,8 @@
-```groovy
 pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "customer-portal"
+        IMAGE_NAME = 'customer-portal'
         IMAGE_TAG = "build-${BUILD_NUMBER}"
         CONTAINER_NAME = "customer-portal-${BUILD_NUMBER}"
     }
@@ -33,7 +32,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                echo 'Building Docker image...'
+                echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
                 bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
             }
         }
@@ -45,24 +44,19 @@ pipeline {
                 bat 'docker run -d --name %CONTAINER_NAME% -p 8090:8080 %IMAGE_NAME%:%IMAGE_TAG%'
 
                 echo 'Waiting for application to start...'
-
                 bat 'timeout /t 5 /nobreak'
 
-                echo 'Checking application health endpoint...'
-
+                echo 'Checking health endpoint...'
                 bat 'curl --fail http://localhost:8090/health'
             }
         }
+    }
 
-        stage('Cleanup') {
-            steps {
-                echo 'Stopping and removing temporary container...'
-
-                bat 'docker stop %CONTAINER_NAME%'
-
-                bat 'docker rm %CONTAINER_NAME%'
-            }
+    post {
+        always {
+            echo 'Cleaning up temporary container...'
+            bat 'docker stop %CONTAINER_NAME% 2>nul || exit /b 0'
+            bat 'docker rm %CONTAINER_NAME% 2>nul || exit /b 0'
         }
     }
 }
-```
