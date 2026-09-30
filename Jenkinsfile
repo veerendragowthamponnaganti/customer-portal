@@ -33,14 +33,15 @@ stages {
     stage('Docker Build') {
         steps {
             echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-            bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
+            bat '"C:\\Users\\vasav\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t %IMAGE_NAME%:%IMAGE_TAG% .'
         }
     }
 
     stage('Container Verification') {
         steps {
             echo 'Starting temporary container...'
-            bat 'docker run -d --name %CONTAINER_NAME% -p 8090:8080 %IMAGE_NAME%:%IMAGE_TAG%'
+
+            bat '"C:\\Users\\vasav\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name %CONTAINER_NAME% -p 8090:8080 %IMAGE_NAME%:%IMAGE_TAG%'
 
             echo 'Waiting for application to start...'
             bat 'timeout /t 5 /nobreak'
@@ -54,8 +55,8 @@ stages {
 post {
     always {
         echo 'Cleaning up temporary container...'
-        bat 'docker stop %CONTAINER_NAME% 2>nul || exit /b 0'
-        bat 'docker rm %CONTAINER_NAME% 2>nul || exit /b 0'
+        bat '"C:\\Users\\vasav\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" stop %CONTAINER_NAME% 2>nul || exit /b 0'
+        bat '"C:\\Users\\vasav\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm %CONTAINER_NAME% 2>nul || exit /b 0'
     }
 }
 
